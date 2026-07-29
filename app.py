@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-from db import init_db, reg_user, login_user
+from db import init_db, reg_user, login_user, create_budget, get_budgets, get_all_budgets, update_budget, delete_budget
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'
@@ -44,6 +45,41 @@ def dashboard():
     if 'uid' not in session:
         return redirect(url_for('login'))
     return render_template('dashboard.html', name=session['name'])
+
+@app.route('/budgets', methods=['GET', 'POST'])
+def budgets():
+    if 'uid' not in session:
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        action = request.form.get('action', 'create')
+        cat = request.form['cat']
+        month = request.form['month']
+        
+        if action == 'create':
+            limit_amount = float(request.form['limit_amount'])
+            success, err = create_budget(session['uid'], cat, limit_amount, month)
+            if success:
+                return redirect(url_for('budgets', month=month))
+            return render_template('budgets.html', error=err, budgets=[], all_budgets=[], month=month)
+        
+        elif action == 'update':
+            limit_amount = float(request.form['limit_amount'])
+            success, err = update_budget(session['uid'], cat, limit_amount, month)
+            if success:
+                return redirect(url_for('budgets', month=month))
+            return render_template('budgets.html', error=err, budgets=[], all_budgets=[], month=month)
+        
+        elif action == 'delete':
+            success, err = delete_budget(session['uid'], cat, month)
+            if success:
+                return redirect(url_for('budgets', month=month))
+            return render_template('budgets.html', error=err, budgets=[], all_budgets=[], month=month)
+    
+    month = request.args.get('month', datetime.now().strftime('%Y-%m'))
+    budgets = get_budgets(session['uid'], month)
+    all_budgets = get_all_budgets(session['uid'])
+    return render_template('budgets.html', budgets=budgets, all_budgets=all_budgets, month=month, error=None)
 
 @app.route('/logout')
 def logout():

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Budgets</title>
+</head>
+<body>
+    <p>
+        <a href="/dashboard">Dashboard</a> | 
+        <a href="/budgets">Budgets</a> | 
+        <a href="/logout">Logout</a>
+    </p>
+    
+    <h1>Budget Management</h1>
+    
+    {% if error %}
+    <div style="color:red;">{{ error }}</div>
+    {% endif %}
+    
+    <h2>Create/Update Budget</h2>
+    <form method="POST">
+        <label>Category:</label>
+        <select name="cat" required>
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Housing">Housing</option>
+            <option value="Utilities">Utilities</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Healthcare">Healthcare</option>
+            <option value="Education">Education</option>
+            <option value="Insurance">Insurance</option>
+            <option value="Other">Other</option>
+        </select>
+        <br><br>
+        
+        <label>Monthly Limit ($):</label>
+        <input type="number" name="limit_amount" step="0.01" placeholder="Enter limit amount" required>
+        <br><br>
+        
+        <label>Month (YYYY-MM):</label>
+        <input type="month" name="month" value="{{ month }}" required>
+        <br><br>
+        
+        <button type="submit" name="action" value="create">Create Budget</button>
+    </form>
+    
+    <hr>
+    
+    <h2>View Budgets for Month: {{ month }}</h2>
+    <form method="GET" action="/budgets">
+        <label>Select Month:</label>
+        <input type="month" name="month" value="{{ month }}">
+        <button type="submit">View</button>
+    </form>
+    
+    <h3>Current Budgets</h3>
+    <table border="1">
+        <tr>
+            <th>Category</th>
+            <th>Monthly Limit</th>
+            <th>Actions</th>
+        </tr>
+        {% for cat, limit_amount in budgets %}
+        <tr>
+            <td>{{ cat }}</td>
+            <td>${{ "%.2f"|format(limit_amount) }}</td>
+            <td>
+                <form method="POST" style="display:inline;">
+                    <input type="hidden" name="cat" value="{{ cat }}">
+                    <input type="hidden" name="month" value="{{ month }}">
+                    <input type="hidden" name="action" value="delete">
+                    <button type="submit" onclick="return confirm('Delete this budget?')">Delete</button>
+                </form>
+                
+                <details style="display:inline;">
+                    <summary>Update</summary>
+                    <form method="POST" style="display:inline;">
+                        <input type="hidden" name="cat" value="{{ cat }}">
+                        <input type="hidden" name="month" value="{{ month }}">
+                        <input type="hidden" name="action" value="update">
+                        <input type="number" name="limit_amount" step="0.01" value="{{ limit_amount }}" required>
+                        <button type="submit">Update</button>
+                    </form>
+                </details>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="3">No budgets found for this month</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    <hr>
+    
+    <h2>All Budgets History</h2>
+    <table border="1">
+        <tr>
+            <th>Category</th>
+            <th>Monthly Limit</th>
+            <th>Month</th>
+        </tr>
+        {% for cat, limit_amount, month in all_budgets %}
+        <tr>
+            <td>{{ cat }}</td>
+            <td>${{ "%.2f"|format(limit_amount) }}</td>
+            <td>{{ month }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="3">No budgets found</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    <p><a href="/dashboard">Back to Dashboard</a></p>
+</body>
+</html>
