@@ -1,5 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-from db import init_db, reg_user, login_user, create_budget, get_budgets, get_all_budgets, update_budget, delete_budget
+from db import (
+    init_db, reg_user, login_user, create_budget, get_budgets, 
+    get_all_budgets, update_budget, delete_budget,
+    get_user_profile, update_user_profile, get_user_fields,
+    add_user_field, update_user_field, delete_user_field
+)
 from datetime import datetime
 
 app = Flask(__name__)
@@ -80,6 +85,52 @@ def budgets():
     budgets = get_budgets(session['uid'], month)
     all_budgets = get_all_budgets(session['uid'])
     return render_template('budgets.html', budgets=budgets, all_budgets=all_budgets, month=month, error=None)
+
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+    if 'uid' not in session:
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'update_profile':
+            full_name = request.form.get('full_name', '')
+            phone = request.form.get('phone', '')
+            address = request.form.get('address', '')
+            occupation = request.form.get('occupation', '')
+            success, err = update_user_profile(session['uid'], full_name, phone, address, occupation)
+            if success:
+                return redirect(url_for('profile'))
+            return render_template('profile.html', error=err, user=None, fields=[])
+        
+        elif action == 'add_field':
+            field_title = request.form['field_title']
+            field_value = request.form['field_value']
+            success, err = add_user_field(session['uid'], field_title, field_value)
+            if success:
+                return redirect(url_for('profile'))
+            return render_template('profile.html', error=err, user=None, fields=[])
+        
+        elif action == 'update_field':
+            field_id = int(request.form['field_id'])
+            field_title = request.form['field_title']
+            field_value = request.form['field_value']
+            success, err = update_user_field(session['uid'], field_id, field_title, field_value)
+            if success:
+                return redirect(url_for('profile'))
+            return render_template('profile.html', error=err, user=None, fields=[])
+        
+        elif action == 'delete_field':
+            field_id = int(request.form['field_id'])
+            success, err = delete_user_field(session['uid'], field_id)
+            if success:
+                return redirect(url_for('profile'))
+            return render_template('profile.html', error=err, user=None, fields=[])
+    
+    user = get_user_profile(session['uid'])
+    fields = get_user_fields(session['uid'])
+    return render_template('profile.html', user=user, fields=fields, error=None)
 
 @app.route('/logout')
 def logout():

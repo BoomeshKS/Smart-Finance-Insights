@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile</title>
+</head>
+<body>
+    <p>
+        <a href="/dashboard">Dashboard</a> | 
+        <a href="/budgets">Budgets</a> | 
+        <a href="/profile">Profile</a> | 
+        <a href="/logout">Logout</a>
+    </p>
+    
+    <h1>User Profile</h1>
+    
+    {% if error %}
+    <div style="color:red;">{{ error }}</div>
+    {% endif %}
+    
+    <h2>Basic Information</h2>
+    <form method="POST">
+        <input type="hidden" name="action" value="update_profile">
+        
+        <label>Username:</label>
+        <input type="text" value="{{ user.name if user else '' }}" disabled><br><br>
+        
+        <label>Email:</label>
+        <input type="email" value="{{ user.email if user else '' }}" disabled><br><br>
+        
+        <label>Full Name:</label>
+        <input type="text" name="full_name" value="{{ user.full_name if user and user.full_name else '' }}" placeholder="Enter your full name"><br><br>
+        
+        <label>Phone:</label>
+        <input type="text" name="phone" value="{{ user.phone if user and user.phone else '' }}" placeholder="Enter phone number"><br><br>
+        
+        <label>Address:</label>
+        <textarea name="address" rows="3" placeholder="Enter your address">{{ user.address if user and user.address else '' }}</textarea><br><br>
+        
+        <label>Occupation:</label>
+        <input type="text" name="occupation" value="{{ user.occupation if user and user.occupation else '' }}" placeholder="Enter your occupation"><br><br>
+        
+        <button type="submit">Update Profile</button>
+    </form>
+    
+    <hr>
+    
+    <h2>Custom Fields</h2>
+    
+    <h3>Add New Field</h3>
+    <form method="POST">
+        <input type="hidden" name="action" value="add_field">
+        <label>Field Title:</label>
+        <input type="text" name="field_title" placeholder="e.g., Hobbies, Skills, etc." required><br><br>
+        
+        <label>Field Value:</label>
+        <textarea name="field_value" rows="2" placeholder="Enter field content" required></textarea><br><br>
+        
+        <button type="submit">Add Field</button>
+    </form>
+    
+    <h3>Your Custom Fields</h3>
+    {% if fields %}
+        <table border="1">
+            <tr>
+                <th>Title</th>
+                <th>Content</th>
+                <th>Actions</th>
+            </tr>
+            {% for field_id, field_title, field_value in fields %}
+            <tr>
+                <td>{{ field_title }}</td>
+                <td>{{ field_value }}</td>
+                <td>
+                    <details>
+                        <summary>Edit</summary>
+                        <form method="POST" style="display:inline;">
+                            <input type="hidden" name="action" value="update_field">
+                            <input type="hidden" name="field_id" value="{{ field_id }}">
+                            <input type="text" name="field_title" value="{{ field_title }}" required><br>
+                            <textarea name="field_value" rows="2" required>{{ field_value }}</textarea><br>
+                            <button type="submit">Update</button>
+                        </form>
+                    </details>
+                    
+                    <form method="POST" style="display:inline;">
+                        <input type="hidden" name="action" value="delete_field">
+                        <input type="hidden" name="field_id" value="{{ field_id }}">
+                        <button type="submit" onclick="return confirm('Delete this field?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No custom fields added yet.</p>
+    {% endif %}
+    
+    <p><a href="/dashboard">Back to Dashboard</a></p>
+</body>
+</html>
