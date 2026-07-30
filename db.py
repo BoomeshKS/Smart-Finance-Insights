@@ -23,6 +23,14 @@ def init_db():
             created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
+    # cur.execute("""
+    #     ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name VARCHAR(255);
+    #     ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(20);   
+    #     ALTER TABLE users ADD COLUMN IF NOT EXISTS address TEXT;
+    #     ALTER TABLE users ADD COLUMN IF NOT EXISTS occupation VARCHAR(100);
+    # """)
+
     cur.execute("""
         CREATE TABLE IF NOT EXISTS budgets (
             id SERIAL PRIMARY KEY,
@@ -142,11 +150,12 @@ def delete_budget(uid, cat, month):
         cur.close()
         conn.close()
 
+
 def get_user_profile(uid):
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("""
-        SELECT id, name, email, full_name, phone, address, occupation 
+        SELECT id, name, email, full_name, phone, address, occupation
         FROM users WHERE id=%s
     """, (uid,))
     user = cur.fetchone()
